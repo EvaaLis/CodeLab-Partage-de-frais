@@ -21,6 +21,24 @@ PAGE = """
 
 </form>
 
+<h2>Durée des vacances</h2>
+
+<form method="post" action="/vacances">
+
+    <label>Date de début :</label>
+    <input type="date" name="date_debut" required>
+
+    <br><br>
+
+    <label>Date de fin :</label>
+    <input type="date" name="date_fin" required>
+
+    <br><br>
+
+    <button type="submit">Enregistrer les dates</button>
+
+</form>
+
 <h2>Ajouter une dépense</h2>
 
 <form method="post" action="/depenses">
@@ -94,7 +112,7 @@ def ajouter_depense():
 
     with ouvrir_base() as conn:
         membres = conn.execute("SELECT id, nom FROM membres").fetchall()
-        conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, payeur_id,date) VALUES (1, ?,?,?,?)", [libelle, montant_centimes, int(payeur_id),date])
+        conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, payeur_id,date) VALUES (1, ?,?,?,?)", [libelle, montantcentime, int(payeur_id),date])
     return redirect("/")
 
 #Test
