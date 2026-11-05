@@ -4,7 +4,7 @@ from base import ouvrir_base
 
 # Le HTML de la page.
 PAGE = """
-<h1>Partage de frais</h1>
+<<h1 style="text-align: center;">Partage de frais</h1>
 
 <h2>Membres</h2>
 <ul>
@@ -21,19 +21,37 @@ PAGE = """
 
 </form>
 
+<h2>Durée des vacances</h2>
+
+<form method="post" action="/vacances">
+
+    <label>Date de début :</label>
+    <input type="date" name="date_debut" required>
+
+    <br><br>
+
+    <label>Date de fin :</label>
+    <input type="date" name="date_fin" required>
+
+    <br><br>
+
+    <button type="submit">Enregistrer les dates</button>
+
+</form>
+
 <h2>Ajouter une dépense</h2>
 
 <form method="post" action="/depenses">
 
     <label>Libellé :</label>
     <input type="text" name="libelle" required>
-
+<br>
     <label>Montant :</label>
     <input type="number" name="montant" step="0.01" required>
-
+<br>
     <label>Date :</label>
     <input type="date" name="date" required>
-
+<br>
     <label>Payeur :</label>
     <select name="payeur" required>
         <option value="">Choisir un payeur</option>
@@ -43,15 +61,14 @@ PAGE = """
             </option>
         {% endfor %}
     </select>
+<br>
+<label>Participants :</label>
 
-<label>Participant :</label>
-<select name="participant" multiple required>
-    {% for membre in membres %}
-        <option value="{{ membre['nom'] }}">
-            {{ membre['nom'] }}
-        </option>
-    {% endfor %}
-</select>
+{% for membre in membres %}
+    <input type="checkbox" name="participants" value="{{ membre['nom'] }}">
+    {{ membre['nom'] }}
+    <br>
+{% endfor %}
 
     <button type="submit">Ajouter la dépense</button>
 
@@ -86,7 +103,7 @@ def ajouter_membre():
 
 @app.post("/depense")
 def ajouter_depense():
-    libelle = request.form["libelle"]
+    libelle = request.forpym["libelle"]
     montant = request.form["montant"]
     date = request.form["date"]
     payeur_id = request.form["payeur_id"]
