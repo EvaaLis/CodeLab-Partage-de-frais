@@ -84,10 +84,10 @@ def ajouter_membre():
 
 
 
-    @app.post("/depense")
+@app.post("/depense")
 def ajouter_depense():
-    libelle = request.from["libelle"]
-    montant = request.from["montant"]
+    libelle = request.form["libelle"]
+    montant = request.form["montant"]
     date = request.form["date"]
     payeur_id = request.form["payeur_id"]
     dep = request.form["depense"]
@@ -96,7 +96,7 @@ def ajouter_depense():
         conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, payeur_id) VALUES (1, ?,?,?,?)", [libelle, montant, centime, date, int(payeur_id)])
     return redirect("/")
 
-
+#Test
 # Ajoutez vos fonctions ici. Le HTML va dans PAGE.
 
 
