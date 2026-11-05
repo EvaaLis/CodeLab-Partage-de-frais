@@ -17,7 +17,11 @@ PAGE = """
   <input name="nom" placeholder="Nom" required>
   <button>Ajouter</button>
 </form>
+
 """
+
+
+
 
 app = Flask(__name__)
 
@@ -36,6 +40,20 @@ def ajouter_membre():
     nom = request.form["nom"]
     with ouvrir_base() as conn:
         conn.execute("INSERT INTO membres (groupe_id, nom) VALUES (1, ?)", [nom])
+    return redirect("/")
+
+
+
+    @app.post("/depense")
+def ajouter_depense():
+    libelle = request.from["libelle"]
+    montant = request.from["montant"]
+    date = request.form["date"]
+    payeur_id = request.form["payeur_id"]
+    dep = request.form["depense"]
+    with ouvrir_base() as conn:
+        membres = conn.execute("SELECT id, nom FROM membres").fetchall()
+        conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, payeur_id) VALUES (1, ?,?,?,?)", [libelle, montant, centime, date, int(payeur_id)])
     return redirect("/")
 
 
