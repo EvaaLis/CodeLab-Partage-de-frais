@@ -75,6 +75,26 @@ PAGE = """
 
 </form>
 
+<h2>Supprimer une dépense</h2>
+
+<form method="post" action="/supprimer_depense">
+
+    <label>Choisir la dépense à supprimer :</label>
+
+    <select name="depense_id" required>
+        <option value="">Choisir une dépense</option>
+
+        {% for depense in depenses %}
+            <option value="{{ depense['id'] }}">
+                {{ depense['libelle'] }} - {{ depense['montant'] }} €
+            </option>
+        {% endfor %}
+
+    </select>
+
+    <button type="submit">Supprimer la dépense</button>
+
+</form>
 
 """
 
