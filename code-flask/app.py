@@ -46,11 +46,17 @@ PAGE = """
     <label>Libellé :</label>
     <input type="text" name="libelle" required>
 
+    <br><br>
+
     <label>Montant :</label>
     <input type="number" name="montant" step="0.01" min="0" required>
 
+    <br><br>
+
     <label>Date :</label>
     <input type="date" name="date" required>
+
+    <br><br>
 
     <label>Payeur :</label>
     <select name="payeur" required>
@@ -62,6 +68,8 @@ PAGE = """
         {% endfor %}
     </select>
 
+    <br><br>
+
     <label>Participants :</label>
     <select name="participant" multiple required>
         {% for membre in membres %}
@@ -70,6 +78,8 @@ PAGE = """
             </option>
         {% endfor %}
     </select>
+
+    <br><br>
 
     <button type="submit">Ajouter la dépense</button>
 
@@ -112,7 +122,7 @@ def ajouter_depense():
 
     with ouvrir_base() as conn:
         membres = conn.execute("SELECT id, nom FROM membres").fetchall()
-        conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, payeur_id,date) VALUES (1, ?,?,?,?)", [libelle, montantcentime, int(payeur_id),date])
+        conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, payeur_id,date) VALUES (1, ?,?,?,?)", [libelle, montant_centimes, int(payeur_id),date])
     return redirect("/")
 
 #Test
