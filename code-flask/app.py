@@ -47,7 +47,7 @@ PAGE = """
     <input type="text" name="libelle" required>
 
     <label>Montant :</label>
-    <input type="number" name="montant" step="0.01" required>
+    <input type="number" name="montant" step="0.01" min="0" required>
 
     <label>Date :</label>
     <input type="date" name="date" required>
@@ -62,14 +62,14 @@ PAGE = """
         {% endfor %}
     </select>
 
-<label>Participant :</label>
-<select name="participant" multiple required>
-    {% for membre in membres %}
-        <option value="{{ membre['nom'] }}">
-            {{ membre['nom'] }}
-        </option>
-    {% endfor %}
-</select>
+    <label>Participants :</label>
+    <select name="participant" multiple required>
+        {% for membre in membres %}
+            <option value="{{ membre['id'] }}">
+                {{ membre['nom'] }}
+            </option>
+        {% endfor %}
+    </select>
 
     <button type="submit">Ajouter la dépense</button>
 
