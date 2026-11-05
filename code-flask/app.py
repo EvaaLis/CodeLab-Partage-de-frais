@@ -16,7 +16,47 @@ PAGE = """
 <form method="post" action="/membres">
   <input name="nom" placeholder="Nom" required>
   <button>Ajouter</button>
+
+
+
 </form>
+
+<h2>Ajouter une dépense</h2>
+
+<form method="post" action="/depenses">
+
+    <label>Libellé :</label>
+    <input type="text" name="libelle" required>
+
+    <label>Montant :</label>
+    <input type="number" name="montant" step="0.01" required>
+
+    <label>Date :</label>
+    <input type="date" name="date" required>
+
+    <label>Payeur :</label>
+    <select name="payeur" required>
+        <option value="">Choisir un payeur</option>
+        {% for membre in membres %}
+            <option value="{{ membre['nom'] }}">
+                {{ membre['nom'] }}
+            </option>
+        {% endfor %}
+    </select>
+
+<label>Participant :</label>
+<select name="participant" multiple required>
+    {% for membre in membres %}
+        <option value="{{ membre['nom'] }}">
+            {{ membre['nom'] }}
+        </option>
+    {% endfor %}
+</select>
+
+    <button type="submit">Ajouter la dépense</button>
+
+</form>
+
 """
 
 app = Flask(__name__)
