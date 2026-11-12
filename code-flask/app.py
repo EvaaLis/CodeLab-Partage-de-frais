@@ -123,6 +123,18 @@ PAGE = """
   {% endfor %}
 </ul>
 
+<form method="get" action="/groupe/{{ groupe_actuel['id'] }}">
+  <button name="remboursement" value="1">Remboursement</button>
+</form>
+
+{% if remboursements is not none %}
+<ul>
+  {% for creancier, debiteur, montant in remboursements %}
+    <li>{{ noms[debiteur] }} doit {{ montant / 100 }} € à {{ noms[creancier] }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
 """
 
 
@@ -147,6 +159,11 @@ def accueil(groupe_id=None):
         membres = conn.execute("SELECT id, nom FROM membres WHERE groupe_id = ?", [groupe_id]).fetchall()
         depenses = conn.execute("SELECT id, libelle, montant_centimes FROM depenses WHERE groupe_id = ?", [groupe_id]).fetchall()
         soldes = calculer_soldes(groupe_id)
+        noms = {membre["id"]: membre["nom"] for membre in membres}
+
+        remboursements = None
+        if request.args.get("remboursement"):
+            remboursements = calculer_remboursements(groupe_id)
 
     return render_template_string(
         PAGE,
@@ -154,7 +171,9 @@ def accueil(groupe_id=None):
         groupe_actuel=groupe_actuel,
         membres=membres,
         depenses=depenses,
-        soldes=soldes
+        soldes=soldes,
+        noms=noms,
+        remboursements=remboursements
     )
 
 
@@ -306,6 +325,31 @@ def calculer_soldes(groupe_id):
                     soldes[membre_id] -= part
 
     return soldes
+
+
+def calculer_remboursements(groupe_id):
+    remboursement = []
+    soldes = calculer_soldes(groupe_id).copy()
+    with ouvrir_base() as conn:
+        membres = conn.execute(
+            "SELECT id FROM membres WHERE groupe_id = ?",
+            [groupe_id]
+        ).fetchall()
+        membres = [membre["id"] for membre in membres]
+        positif = [m for m in membres if soldes.get(m, 0) > 0]
+        negatif = [m for m in membres if soldes.get(m, 0) < 0]
+        while positif and negatif:
+            x = len(positif) - 1
+            y = len(negatif) - 1
+            montant = min(soldes[positif[x]], -soldes[negatif[y]])
+            remboursement.append((positif[x], negatif[y], montant))
+            soldes[positif[x]] -= montant
+            soldes[negatif[y]] += montant
+            if soldes[positif[x]] == 0:
+                positif.pop()
+            if soldes[negatif[y]] == 0:
+                negatif.pop()
+    return remboursement
 
 
 if __name__ == "__main__":
