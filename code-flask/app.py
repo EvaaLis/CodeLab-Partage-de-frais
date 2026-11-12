@@ -4,7 +4,22 @@ from base import ouvrir_base
 
 # Le HTML de la page.
 PAGE = """
+
 <h1 style="text-align: center;">Partage de frais</h1>
+
+<h2>Groupes</h2>
+
+<ul>
+    {% for groupe in groupes %}
+        <li>{{ groupe["nom"] }}</li>
+    {% endfor %}
+</ul>
+
+<form method="post" action="/groupes">
+
+    <input name="nom_groupe" placeholder="Nom du groupe" required>
+
+    <button type="submit">Créer un groupe</button>
 
 <h2>Membres</h2>
 <ul>
