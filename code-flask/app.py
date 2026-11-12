@@ -61,6 +61,10 @@ PAGE = """
     <label>Libellé :</label>
     <input type="text" name="libelle" required>
 <br>
+    <label>Type de dépense :</label>
+    <input type="text" name="type_depense" required>
+<br>
+
     <label>Montant :</label>
     <input type="number" name="montant" step="0.01" required>
 <br>
@@ -148,12 +152,13 @@ def ajouter_membre():
 @app.post("/depenses")
 def ajouter_depense():
     libelle = request.form["libelle"]
+    type_depense = request.form["type_depense"]
     montant_centimes = round(float(request.form["montant"]) * 100)
     date = request.form["date"]
     payeur_id = int(request.form["payeur"])
     participants = request.form.getlist("participants")
     with ouvrir_base() as conn:
-        cur = conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, date, payeur_id) VALUES (1, ?, ?, ?, ?)", [libelle, montant_centimes, date, payeur_id])
+        cur = conn.execute("INSERT INTO depenses (groupe_id, libelle,type_depense, montant_centimes, date, payeur_id) VALUES (1, ?,?, ?, ?, ?)", [libelle,type_depense, montant_centimes, date, payeur_id])
         for membre_id in participants:
             conn.execute("INSERT INTO participants (depense_id, membre_id) VALUES (?, ?)", [cur.lastrowid, int(membre_id)])
     return redirect("/")

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS depenses (
     id INTEGER PRIMARY KEY,
     groupe_id INTEGER NOT NULL REFERENCES groupes(id) ON DELETE CASCADE,
     libelle TEXT NOT NULL,
+    type_depense TEXT,
     montant_centimes INTEGER NOT NULL,
     date TEXT NOT NULL,
     payeur_id INTEGER NOT NULL REFERENCES membres(id)
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS participants (
     membre_id INTEGER NOT NULL REFERENCES membres(id),
     PRIMARY KEY (depense_id, membre_id)
 );
+
 
 -- Données d'exemple, chargées à la création de data.db.
 INSERT INTO groupes (id, nom, date_debut, date_fin) VALUES (1, 'Vacances à Spa', '2026-07-01', '2026-07-08');
