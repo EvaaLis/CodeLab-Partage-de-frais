@@ -4,7 +4,7 @@ from base import ouvrir_base
 
 # Le HTML de la page.
 PAGE = """
-<<h1 style="text-align: center;">Partage de frais</h1>
+<h1 style="text-align: center;">Partage de frais</h1>
 
 <h2>Membres</h2>
 <ul>
@@ -56,7 +56,7 @@ PAGE = """
     <select name="payeur" required>
         <option value="">Choisir un payeur</option>
         {% for membre in membres %}
-            <option value="{{ membre['nom'] }}">
+            <option value="{{ membre['id'] }}">
                 {{ membre['nom'] }}
             </option>
         {% endfor %}
@@ -66,7 +66,7 @@ PAGE = """
 <label>Participants :</label>
 
 {% for membre in membres %}
-    <input type="checkbox" name="participants" value="{{ membre['nom'] }}">
+    <input type="checkbox" name="participants" value="{{ membre['id'] }}">
     {{ membre['nom'] }}
     <br>
 {% endfor %}
@@ -86,7 +86,7 @@ PAGE = """
 
         {% for depense in depenses %}
             <option value="{{ depense['id'] }}">
-                {{ depense['libelle'] }} - {{ depense['montant'] }} €
+                {{ depense['libelle'] }} - {{ depense['montant_centimes'] / 100 }} €
             </option>
         {% endfor %}
 
@@ -95,6 +95,13 @@ PAGE = """
     <button type="submit">Supprimer la dépense</button>
 
 </form>
+
+<h2>Soldes</h2>
+<ul>
+  {% for membre in membres %}
+    <li>{{ membre["nom"] }} : {{ soldes[membre["id"]] / 100 }} €</li>
+  {% endfor %}
+</ul>
 
 """
 
@@ -108,8 +115,9 @@ app = Flask(__name__)
 @app.get("/")
 def accueil():
     with ouvrir_base() as conn:
-        membres = conn.execute("SELECT nom FROM membres").fetchall()
-    return render_template_string(PAGE, membres=membres)
+        membres = conn.execute("SELECT id, nom FROM membres").fetchall()
+        depenses = conn.execute("SELECT id, libelle, montant_centimes FROM depenses").fetchall()
+    return render_template_string(PAGE, membres=membres, depenses=depenses, soldes=calculer_soldes(1))
 
 
 # Exemple : reçoit le formulaire et ajoute un membre au groupe 1.
@@ -122,20 +130,76 @@ def ajouter_membre():
 
 
 
-@app.post("/depense")
+@app.post("/depenses")
 def ajouter_depense():
-    libelle = request.forpym["libelle"]
-    montant = request.form["montant"]
+    libelle = request.form["libelle"]
+    montant_centimes = round(float(request.form["montant"]) * 100)
     date = request.form["date"]
-    payeur_id = request.form["payeur_id"]
-    dep = request.form["depense"]
+    payeur_id = int(request.form["payeur"])
+    participants = request.form.getlist("participants")
     with ouvrir_base() as conn:
-        membres = conn.execute("SELECT id, nom FROM membres").fetchall()
-        conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, payeur_id) VALUES (1, ?,?,?,?)", [libelle, montant, centime, date, int(payeur_id)])
+        cur = conn.execute("INSERT INTO depenses (groupe_id, libelle, montant_centimes, date, payeur_id) VALUES (1, ?, ?, ?, ?)", [libelle, montant_centimes, date, payeur_id])
+        for membre_id in participants:
+            conn.execute("INSERT INTO participants (depense_id, membre_id) VALUES (?, ?)", [cur.lastrowid, int(membre_id)])
     return redirect("/")
 
 #Test
 # Ajoutez vos fonctions ici. Le HTML va dans PAGE.
+@app.post("/supprimer_depense")
+def supprimer_depense():
+    with ouvrir_base() as conn:
+        conn.execute("DELETE FROM depenses WHERE id = ?", [request.form["depense_id"]])
+    return redirect("/")
+
+def repartir_depense(montant_centimes, participants):
+    if montant_centimes <= 0 or not participants:
+        raise ValueError("Dépense invalide")
+
+    part = montant_centimes // len(participants)
+    reste = montant_centimes % len(participants)
+
+    parts = {}
+
+    for i, participant_id in enumerate(participants):
+        parts[participant_id] = part + (reste if i == 0 else 0)
+
+    return parts
+
+def calculer_soldes(groupe_id):
+    with ouvrir_base() as conn:
+        membres = conn.execute(
+            "SELECT id FROM membres WHERE groupe_id = ?",
+            [groupe_id]
+        ).fetchall()
+
+        depenses = conn.execute(
+            "SELECT id, montant_centimes, payeur_id FROM depenses WHERE groupe_id = ?",
+            [groupe_id]
+        ).fetchall()
+
+        soldes = {membre["id"]: 0 for membre in membres}
+
+        for depense in depenses:
+            participants = conn.execute(
+                "SELECT membre_id FROM participants WHERE depense_id = ? ORDER BY rowid",
+                [depense["id"]]
+            ).fetchall()
+
+            ids_participants = [p["membre_id"] for p in participants]
+            if not ids_participants:
+                continue
+
+            parts = repartir_depense(
+                depense["montant_centimes"],
+                ids_participants
+            )
+
+            soldes[depense["payeur_id"]] += depense["montant_centimes"]
+
+            for membre_id, part in parts.items():
+                soldes[membre_id] -= part
+
+    return soldes
 
 
 if __name__ == "__main__":
