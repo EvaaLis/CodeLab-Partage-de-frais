@@ -22,6 +22,12 @@ PAGE = """
 
 <form method="post" action="/groupes">
   <input name="nom_groupe" placeholder="Nom du groupe" required>
+
+  <label>Date de début :</label>
+  <input type="date" name="date_debut" required>
+
+  <label>Date de fin :</label>
+  <input type="date" name="date_fin" required>
   <button>Ajouter un groupe</button>
 </form>
 
