@@ -22,26 +22,7 @@ PAGE = """
 
 <form method="post" action="/groupes">
   <input name="nom_groupe" placeholder="Nom du groupe" required>
-
-  <label>Date de début :</label>
-  <input type="date" name="date_debut" required>
-
-  <label>Date de fin :</label>
-  <input type="date" name="date_fin" required>
   <button>Ajouter un groupe</button>
-</form>
-
-<h2>Membres du groupe : {{ groupe_actuel["nom"] }}</h2>
-<ul>
-  {% for membre in membres %}
-    <li>{{ membre["nom"] }}</li>
-  {% endfor %}
-</ul>
-
-<form method="post" action="/membres">
-  <input type="hidden" name="groupe_id" value="{{ groupe_actuel['id'] }}">
-  <input name="nom" placeholder="Nom" required>
-  <button>Ajouter un membre</button>
 </form>
 
 <h2>Durée des vacances</h2>
@@ -62,6 +43,23 @@ PAGE = """
     <button type="submit">Enregistrer les dates</button>
 
 </form>
+<h2>Membres du groupe : {{ groupe_actuel["nom"] }}</h2>
+<ul>
+  {% for membre in membres %}
+    <li>{{ membre["nom"] }}</li>
+  {% endfor %}
+</ul>
+
+<form method="post" action="/membres">
+  <input type="hidden" name="groupe_id" value="{{ groupe_actuel['id'] }}">
+  <input name="nom" placeholder="Nom" required>
+  <button>Ajouter un membre</button>
+  
+  {% if request.args.get("erreur") == "existe" %}
+    <p style="color: red;">Ce nom d'utilisateur existe déjà !</p>
+{% endif %}
+</form>
+
 
 <h2>Ajouter une dépense</h2>
 
@@ -203,10 +201,25 @@ def ajouter_groupe():
 def ajouter_membre():
     nom = request.form.get("nom", "").strip()
     groupe_id = request.form.get("groupe_id")
+
     if nom and groupe_id:
         with ouvrir_base() as conn:
-            conn.execute("INSERT INTO membres (groupe_id, nom) VALUES (?, ?)", [groupe_id, nom])
+
+            existe = conn.execute(
+                "SELECT id FROM membres WHERE nom = ? AND groupe_id = ?",
+                [nom, groupe_id]
+            ).fetchone()
+
+            if existe:
+                return redirect(f"/groupe/{groupe_id}?erreur=existe")
+
+            conn.execute(
+                "INSERT INTO membres (groupe_id, nom) VALUES (?, ?)",
+                [groupe_id, nom]
+            )
+
     return redirect(f"/groupe/{groupe_id}")
+        
 
 
 # Enregistre les dates du séjour pour le groupe actuel
